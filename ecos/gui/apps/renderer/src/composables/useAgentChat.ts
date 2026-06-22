@@ -7,25 +7,25 @@ import type {
   DesktopEventUnsubscribe,
 } from '@ecos-studio/shared'
 import { waitForDesktopApi } from '@/platform/desktop'
-import { useCodexChatStore } from '../stores/codexChatStore'
+import { useAgentChatStore } from '../stores/agentChatStore'
 
-interface UseCodexChatOptions {
+interface UseAgentChatOptions {
   agentMode: Ref<DesktopAgentMode>
   projectPath: Ref<string | null>
   scrollToBottomIfNeeded(force?: boolean): void
 }
 
-export function useCodexChat(options: UseCodexChatOptions) {
-  const codexChatStore = useCodexChatStore()
-  const { isInterrupting, isSending } = storeToRefs(codexChatStore)
+export function useAgentChat(options: UseAgentChatOptions) {
+  const agentChatStore = useAgentChatStore()
+  const { isInterrupting, isSending } = storeToRefs(agentChatStore)
   const activeAssistantMessageId = ref<string | null>(null)
   const activeActionBlockIds = new Map<string, string>()
-  let unsubscribeCodexEvents: DesktopEventUnsubscribe | null = null
-  let codexThreadStartedForPath: string | null = null
+  let unsubscribeAgentEvents: DesktopEventUnsubscribe | null = null
+  let agentSessionStartedForPath: string | null = null
 
   const appendAssistantDelta = (delta: string) => {
     const assistantId = ensureAssistantMessage()
-    codexChatStore.appendToMessage(assistantId, delta)
+    agentChatStore.appendToMessage(assistantId, delta)
     options.scrollToBottomIfNeeded()
   }
 
@@ -34,7 +34,7 @@ export function useCodexChat(options: UseCodexChatOptions) {
       return activeAssistantMessageId.value
     }
 
-    const assistantId = codexChatStore.addAssistantMessage('', 'loading')
+    const assistantId = agentChatStore.addAssistantMessage('', 'loading')
     activeAssistantMessageId.value = assistantId
     return assistantId
   }
@@ -42,7 +42,7 @@ export function useCodexChat(options: UseCodexChatOptions) {
   const finishActiveAssistantBlock = () => {
     const assistantId = activeAssistantMessageId.value
     if (!assistantId) return
-    codexChatStore.updateMessage(assistantId, { status: 'done' })
+    agentChatStore.updateMessage(assistantId, { status: 'done' })
     activeAssistantMessageId.value = null
   }
 
@@ -56,7 +56,7 @@ export function useCodexChat(options: UseCodexChatOptions) {
   const completeAssistantMessage = () => {
     finishActiveAssistantBlock()
     for (const blockId of activeActionBlockIds.values()) {
-      codexChatStore.updateMessage(blockId, { status: 'done' })
+      agentChatStore.updateMessage(blockId, { status: 'done' })
     }
     resetStreamingState()
   }
@@ -64,7 +64,7 @@ export function useCodexChat(options: UseCodexChatOptions) {
   const failAssistantMessage = (message: string) => {
     const assistantId = activeAssistantMessageId.value
     if (assistantId) {
-      codexChatStore.updateMessage(assistantId, {
+      agentChatStore.updateMessage(assistantId, {
         content: message,
         status: 'error',
       })
@@ -72,9 +72,9 @@ export function useCodexChat(options: UseCodexChatOptions) {
     resetStreamingState()
   }
 
-  const addCodexBlock = (content: string, status: 'loading' | 'done' | 'error' = 'done') => {
+  const addAgentBlock = (content: string, status: 'loading' | 'done' | 'error' = 'done') => {
     finishActiveAssistantBlock()
-    const blockId = codexChatStore.addAssistantMessage(content, status)
+    const blockId = agentChatStore.addAssistantMessage(content, status)
     options.scrollToBottomIfNeeded(true)
     return blockId
   }
@@ -86,25 +86,25 @@ export function useCodexChat(options: UseCodexChatOptions) {
   ) => {
     finishActiveAssistantBlock()
     if (!itemId) {
-      return addCodexBlock(content, status)
+      return addAgentBlock(content, status)
     }
 
     const existingId = activeActionBlockIds.get(itemId)
     if (existingId) {
-      codexChatStore.updateMessage(existingId, { content, status })
+      agentChatStore.updateMessage(existingId, { content, status })
       options.scrollToBottomIfNeeded()
       return existingId
     }
 
-    const blockId = codexChatStore.addAssistantMessage(content, status)
+    const blockId = agentChatStore.addAssistantMessage(content, status)
     activeActionBlockIds.set(itemId, blockId)
     options.scrollToBottomIfNeeded(true)
     return blockId
   }
 
-  const handleCodexEvent = (event: DesktopAgentEvent) => {
+  const handleAgentEvent = (event: DesktopAgentEvent) => {
     if (event.type === 'status') {
-      codexChatStore.setCodexStatus(event.status as DesktopAgentStatus)
+      agentChatStore.setAgentStatus(event.status as DesktopAgentStatus)
       return
     }
 
@@ -138,14 +138,14 @@ export function useCodexChat(options: UseCodexChatOptions) {
     }
   }
 
-  const ensureCodexThread = async (projectPath: string) => {
-    if (codexThreadStartedForPath === projectPath) {
+  const ensureAgentSession = async (projectPath: string) => {
+    if (agentSessionStartedForPath === projectPath) {
       return
     }
 
     const desktopApi = await waitForDesktopApi()
     await desktopApi.agent.startSession({ cwd: projectPath })
-    codexThreadStartedForPath = projectPath
+    agentSessionStartedForPath = projectPath
   }
 
   const sendPrompt = async (prompt: string) => {
@@ -155,8 +155,8 @@ export function useCodexChat(options: UseCodexChatOptions) {
 
     const projectPath = options.projectPath.value
     if (!projectPath) {
-      codexChatStore.addUserMessage(prompt)
-      const assistantId = codexChatStore.addAssistantMessage(
+      agentChatStore.addUserMessage(prompt)
+      const assistantId = agentChatStore.addAssistantMessage(
         'Open or create an ECOS project before using the assistant.',
         'error',
       )
@@ -165,13 +165,13 @@ export function useCodexChat(options: UseCodexChatOptions) {
       return
     }
 
-    codexChatStore.addUserMessage(prompt)
-    const assistantId = codexChatStore.addAssistantMessage('', 'loading')
+    agentChatStore.addUserMessage(prompt)
+    const assistantId = agentChatStore.addAssistantMessage('', 'loading')
     activeAssistantMessageId.value = assistantId
     isSending.value = true
 
     try {
-      await ensureCodexThread(projectPath)
+      await ensureAgentSession(projectPath)
       const desktopApi = await waitForDesktopApi()
       await desktopApi.agent.sendMessage({
         cwd: projectPath,
@@ -194,10 +194,10 @@ export function useCodexChat(options: UseCodexChatOptions) {
       await desktopApi.agent.interrupt()
       finishActiveAssistantBlock()
       for (const blockId of activeActionBlockIds.values()) {
-        codexChatStore.updateMessage(blockId, { status: 'done' })
+        agentChatStore.updateMessage(blockId, { status: 'done' })
       }
       activeActionBlockIds.clear()
-      codexChatStore.addAssistantMessage('Turn interrupted.', 'done')
+      agentChatStore.addAssistantMessage('Turn interrupted.', 'done')
       isSending.value = false
     } catch (error) {
       failAssistantMessage(error instanceof Error ? error.message : String(error))
@@ -207,7 +207,7 @@ export function useCodexChat(options: UseCodexChatOptions) {
   }
 
   const adoptResumedThread = (projectPath: string) => {
-    codexThreadStartedForPath = projectPath
+    agentSessionStartedForPath = projectPath
     resetStreamingState()
     options.scrollToBottomIfNeeded(true)
   }
@@ -215,16 +215,16 @@ export function useCodexChat(options: UseCodexChatOptions) {
   onMounted(async () => {
     try {
       const desktopApi = await waitForDesktopApi()
-      codexChatStore.setCodexStatus(await desktopApi.agent.getStatus())
-      unsubscribeCodexEvents = await desktopApi.agent.onEvent(handleCodexEvent)
+      agentChatStore.setAgentStatus(await desktopApi.agent.getStatus())
+      unsubscribeAgentEvents = await desktopApi.agent.onEvent(handleAgentEvent)
     } catch (error) {
-      console.error('Failed to subscribe Codex events:', error)
+      console.error('Failed to subscribe Agent events:', error)
     }
   })
 
   onUnmounted(() => {
-    unsubscribeCodexEvents?.()
-    unsubscribeCodexEvents = null
+    unsubscribeAgentEvents?.()
+    unsubscribeAgentEvents = null
   })
 
   return {

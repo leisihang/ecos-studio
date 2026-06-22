@@ -1,29 +1,29 @@
 import { storeToRefs } from 'pinia'
 import type { DesktopAgentSessionSummary } from '@ecos-studio/shared'
 import { waitForDesktopApi } from '@/platform/desktop'
-import { useCodexChatStore } from '../stores/codexChatStore'
+import { useAgentChatStore } from '../stores/agentChatStore'
 
-interface UseCodexThreadsOptions {
+interface UseAgentThreadsOptions {
   afterResume(projectPath: string): void
 }
 
-export function useCodexThreads(
+export function useAgentThreads(
   projectPath: { value: string | null },
-  options: UseCodexThreadsOptions,
+  options: UseAgentThreadsOptions,
 ) {
-  const codexChatStore = useCodexChatStore()
+  const agentChatStore = useAgentChatStore()
   const {
     isLoadingThreads,
     showHistoryMenu,
-    threads: codexThreads,
-  } = storeToRefs(codexChatStore)
+    threads: agentThreads,
+  } = storeToRefs(agentChatStore)
 
   const formatThreadTime = (timestampSeconds: number) => {
     if (!timestampSeconds) return ''
     return new Date(timestampSeconds * 1000).toLocaleString()
   }
 
-  const loadCodexThreads = async () => {
+  const loadAgentThreads = async () => {
     const cwd = projectPath.value
     if (!cwd || isLoadingThreads.value) {
       return
@@ -36,9 +36,9 @@ export function useCodexThreads(
         cwd,
         limit: 30,
       })
-      codexThreads.value = response.sessions as DesktopAgentSessionSummary[]
+      agentThreads.value = response.sessions as DesktopAgentSessionSummary[]
     } catch (error) {
-      console.error('Failed to load Codex threads:', error)
+      console.error('Failed to load Agent sessions:', error)
     } finally {
       isLoadingThreads.value = false
     }
@@ -57,10 +57,10 @@ export function useCodexThreads(
         cwd,
         sessionId: threadId,
       })
-      codexChatStore.replaceMessages(response.messages)
+      agentChatStore.replaceMessages(response.messages)
       options.afterResume(cwd)
     } catch (error) {
-      codexChatStore.addAssistantMessage(
+      agentChatStore.addAssistantMessage(
         error instanceof Error ? error.message : String(error),
         'error',
       )
@@ -70,7 +70,7 @@ export function useCodexThreads(
   const toggleHistoryMenu = async () => {
     showHistoryMenu.value = !showHistoryMenu.value
     if (showHistoryMenu.value) {
-      await loadCodexThreads()
+      await loadAgentThreads()
     }
   }
 
@@ -80,10 +80,10 @@ export function useCodexThreads(
 
   return {
     closeHistoryMenu,
-    codexThreads,
+    agentThreads,
     formatThreadTime,
     isLoadingThreads,
-    loadCodexThreads,
+    loadAgentThreads,
     resumeThread,
     showHistoryMenu,
     toggleHistoryMenu,

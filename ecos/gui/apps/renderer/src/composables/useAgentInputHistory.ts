@@ -1,6 +1,6 @@
 import { nextTick, ref, type Ref } from 'vue'
 
-export function useCodexInputHistory(inputValue: Ref<string>) {
+export function useAgentInputHistory(inputValue: Ref<string>) {
   const promptHistory = ref<string[]>([])
   const promptHistoryIndex = ref<number | null>(null)
   const draftPrompt = ref('')

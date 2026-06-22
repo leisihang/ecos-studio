@@ -18,7 +18,7 @@
           :key="msg.id"
           :message="msg"
           @img-load="onImageLoad"
-          @close="codexChatStore.removeMessage(msg.id)"
+          @close="agentChatStore.removeMessage(msg.id)"
           class="message-item w-full min-w-0 max-w-full"
         />
       </div>
@@ -36,13 +36,13 @@
 
         <div class="flex items-center justify-between mt-2 px-1">
           <div class="flex items-center gap-3">
-            <CodexHistoryMenu
+            <AgentHistoryMenu
               ref="historyMenuRef"
               :open="showHistoryMenu"
-              :threads="codexThreads"
+              :threads="agentThreads"
               :loading="isLoadingThreads"
               @toggle="toggleHistoryMenu"
-              @refresh="loadCodexThreads"
+              @refresh="loadAgentThreads"
               @resume="handleResumeThread"
             />
 
@@ -90,7 +90,7 @@
             >
               <span
                 class="h-1.5 w-1.5 rounded-full"
-                :class="agentMode === 'flow_guarded_design' && codexStatus?.flowGuard
+                :class="agentMode === 'flow_guarded_design' && agentStatus?.flowGuard
                   ? 'bg-emerald-500'
                   : 'bg-(--border-color)'"
               ></span>
@@ -120,24 +120,24 @@ import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } f
 import { storeToRefs } from 'pinia'
 import type { DesktopAgentMode } from '@ecos-studio/shared'
 import MessageItem from './MessageItem.vue'
-import CodexHistoryMenu from './CodexHistoryMenu.vue'
-import { useCodexChatStore } from '../stores/codexChatStore'
+import AgentHistoryMenu from './AgentHistoryMenu.vue'
+import { useAgentChatStore } from '../stores/agentChatStore'
 import { useWorkspace } from '@/composables/useWorkspace'
-import { useCodexChat } from '@/composables/useCodexChat'
-import { useCodexInputHistory } from '@/composables/useCodexInputHistory'
-import { useCodexThreads } from '@/composables/useCodexThreads'
+import { useAgentChat } from '@/composables/useAgentChat'
+import { useAgentInputHistory } from '@/composables/useAgentInputHistory'
+import { useAgentThreads } from '@/composables/useAgentThreads'
 import { waitForDesktopApi } from '@/platform/desktop'
 
 const NEAR_BOTTOM_THRESHOLD = 32
 
-const codexChatStore = useCodexChatStore()
-const { agentMode, codexStatus, messages } = storeToRefs(codexChatStore)
+const agentChatStore = useAgentChatStore()
+const { agentMode, agentStatus, messages } = storeToRefs(agentChatStore)
 const { currentProject } = useWorkspace()
 
 const inputValue = ref('')
 const scrollContainerRef = ref<HTMLDivElement | null>(null)
 const modeSelectRef = ref<HTMLDivElement | null>(null)
-const historyMenuRef = ref<InstanceType<typeof CodexHistoryMenu> | null>(null)
+const historyMenuRef = ref<InstanceType<typeof AgentHistoryMenu> | null>(null)
 const showModeMenu = ref(false)
 const isComposing = ref(false)
 
@@ -153,7 +153,7 @@ const currentMode = computed(() => {
 const projectPath = computed(() => currentProject.value?.path ?? null)
 
 const currentFlowStep = computed(() => {
-  const steps = codexStatus.value?.flowGuard?.steps
+  const steps = agentStatus.value?.flowGuard?.steps
   if (!steps) return null
   return Object.values(steps).find(step => step.status === 'running')
     ?? Object.values(steps).find(step => step.status === 'ready')
@@ -165,7 +165,7 @@ const modeStatusText = computed(() => {
   if (agentMode.value === 'general_assistant') {
     return '通用助手'
   }
-  if (!codexStatus.value?.flowGuard) {
+  if (!agentStatus.value?.flowGuard) {
     return '设计流护航待启用'
   }
   const step = currentFlowStep.value
@@ -213,27 +213,27 @@ const {
   interruptTurn,
   isSending,
   sendPrompt,
-} = useCodexChat({
+} = useAgentChat({
   agentMode,
   projectPath,
   scrollToBottomIfNeeded,
 })
 
 const {
-  codexThreads,
+  agentThreads,
   closeHistoryMenu,
   isLoadingThreads,
-  loadCodexThreads,
+  loadAgentThreads,
   resumeThread,
   showHistoryMenu,
   toggleHistoryMenu,
-} = useCodexThreads(projectPath, {
+} = useAgentThreads(projectPath, {
   afterResume(projectPathValue) {
     adoptResumedThread(projectPathValue)
   },
 })
 
-const { handleHistoryKeyDown, recordPrompt } = useCodexInputHistory(inputValue)
+const { handleHistoryKeyDown, recordPrompt } = useAgentInputHistory(inputValue)
 
 const toggleModeMenu = () => {
   showModeMenu.value = !showModeMenu.value
@@ -244,7 +244,7 @@ const toggleModeMenu = () => {
 
 const selectMode = async (modeId: DesktopAgentMode) => {
   showModeMenu.value = false
-  codexChatStore.setAgentMode(modeId)
+  agentChatStore.setAgentMode(modeId)
 
   try {
     const desktopApi = await waitForDesktopApi()
@@ -252,9 +252,9 @@ const selectMode = async (modeId: DesktopAgentMode) => {
       cwd: projectPath.value,
       mode: modeId,
     })
-    codexChatStore.setCodexStatus(status)
+    agentChatStore.setAgentStatus(status)
   } catch (error) {
-    codexChatStore.addAssistantMessage(
+    agentChatStore.addAssistantMessage(
       error instanceof Error ? error.message : String(error),
       'error',
     )

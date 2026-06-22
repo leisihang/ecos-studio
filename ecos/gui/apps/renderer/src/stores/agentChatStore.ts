@@ -12,7 +12,7 @@ const generateId = (): string => {
   return `msg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
 }
 
-export const useCodexChatStore = defineStore('codex-chat', () => {
+export const useAgentChatStore = defineStore('agent-chat', () => {
   const messages = ref<Message[]>([])
   const threads = ref<DesktopAgentSessionSummary[]>([])
   const isLoadingThreads = ref(false)
@@ -20,7 +20,7 @@ export const useCodexChatStore = defineStore('codex-chat', () => {
   const isInterrupting = ref(false)
   const showHistoryMenu = ref(false)
   const agentMode = ref<DesktopAgentMode>('general_assistant')
-  const codexStatus = ref<DesktopAgentStatus | null>(null)
+  const agentStatus = ref<DesktopAgentStatus | null>(null)
 
   const addUserMessage = (content: string): string => {
     const id = generateId()
@@ -98,7 +98,7 @@ export const useCodexChatStore = defineStore('codex-chat', () => {
     addUserMessage,
     appendToMessage,
     clearMessages,
-    codexStatus,
+    agentStatus,
     isInterrupting,
     isLoadingThreads,
     isSending,
@@ -108,8 +108,8 @@ export const useCodexChatStore = defineStore('codex-chat', () => {
     setAgentMode: (mode: DesktopAgentMode) => {
       agentMode.value = mode
     },
-    setCodexStatus: (status: DesktopAgentStatus | null) => {
-      codexStatus.value = status
+    setAgentStatus: (status: DesktopAgentStatus | null) => {
+      agentStatus.value = status
       if (status) {
         agentMode.value = status.mode
       }
