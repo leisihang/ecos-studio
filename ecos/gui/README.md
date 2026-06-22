@@ -54,6 +54,8 @@ pnpm run dev:agent
 
 For fork-based development, prefer keeping the bridge as an external checkout or optional submodule at `external/agent-bridge`; ECOS Studio should only contain the thin `agent:*` GUI/IPC layer.
 
+See [Codex Agent GUI Usage](../docs/agent-codex-gui.md) for the full two-repository setup and startup flow.
+
 The renderer dev server prefers port `1420`. If another ECOS Studio dev
 instance is already using it, Vite automatically picks the next free port and
 electron-vite passes that URL to the Electron shell.
@@ -103,6 +105,7 @@ pnpm --filter @ecos-studio/renderer exec vitest run src/utils/sanitizeHtml.test.
 
 - [ECOS package README](../README.md) — overall quick start and release notes for ECOS Studio
 - [ECOS Studio user guide](../docs/user-guide.md) — product usage  
+- [Codex Agent GUI Usage](../docs/agent-codex-gui.md) — Codex bridge setup and Agent panel startup
 - [Repository root README](../../README.md) — monorepo overview  
 - [ECC development](../../ecc/docs/development.md), [ECC architecture](../../ecc/docs/architecture.md) — ECC toolchain docs  
 

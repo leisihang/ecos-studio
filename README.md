@@ -99,6 +99,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
 ## Documentation
 
 - [ECOS Studio User Guide](ecos/docs/user-guide.md)
+- [Codex Agent GUI Usage](ecos/docs/agent-codex-gui.md)
 - [FAQ](ecos/docs/FAQ.md)
 - [ECOS GUI Development](ecos/README.md)
 - [ECC CLI Flow Runner](https://github.com/openecos-projects/ecc/blob/main/README.md#cli-flow-runner)
