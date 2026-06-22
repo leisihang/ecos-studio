@@ -9,6 +9,12 @@ import {
 import {
   desktopApiEventChannels,
   desktopApiIpcChannels,
+  type DesktopAgentListSessionsRequest,
+  type DesktopAgentProviderRequest,
+  type DesktopAgentResumeSessionRequest,
+  type DesktopAgentSendMessageRequest,
+  type DesktopAgentSetModeRequest,
+  type DesktopAgentStartSessionRequest,
   type DesktopCliCommandEvent,
   type DesktopCliCommandRequest,
   type DesktopCliCommandResult,
@@ -38,6 +44,7 @@ import {
   type WorkspaceStepInfoRequest,
   type WorkspaceStepInfoResult,
 } from '@ecos-studio/shared'
+import { randomUUID } from 'node:crypto'
 import {
   closeWindow,
   confirmWindowClose,
@@ -64,6 +71,18 @@ interface DesktopBridgeErrorResult {
 export interface DesktopBridgeServices {
   appInfoService: {
     getVersions(): Promise<VersionInfo>
+  }
+  agentRuntimeService: {
+    getStatus(request?: DesktopAgentProviderRequest): Promise<unknown>
+    interrupt(request?: DesktopAgentProviderRequest): Promise<void>
+    listSessions(request: DesktopAgentListSessionsRequest): Promise<unknown>
+    onEvent(listener: (event: unknown) => void): () => void
+    resumeSession(request: DesktopAgentResumeSessionRequest): Promise<unknown>
+    sendMessage(request: DesktopAgentSendMessageRequest): Promise<unknown>
+    setMode(request: DesktopAgentSetModeRequest): Promise<unknown>
+    start(request?: DesktopAgentProviderRequest): Promise<void>
+    startSession(request: DesktopAgentStartSessionRequest): Promise<unknown>
+    stop(request?: DesktopAgentProviderRequest): Promise<void>
   }
   settingsStore: {
     delete(key: string): Promise<void>
@@ -314,6 +333,14 @@ export function registerIpc(
       onDestroyed: () => void
     }
   >()
+  const agentEventSubscriptions = new Map<
+    string,
+    {
+      unsubscribe: () => void
+      sender: IpcMainInvokeEvent['sender']
+      onDestroyed: () => void
+    }
+  >()
 
   const unwatchProjectFile = async (subscriptionId: string): Promise<void> => {
     const subscription = projectFileWatchSubscriptions.get(subscriptionId)
@@ -355,6 +382,18 @@ export function registerIpc(
       session.sender.off('destroyed', session.onDestroyed)
     }
     await services.shellService.kill(sessionId)
+  }
+
+  const unsubscribeAgentEvents = (subscriptionId: string): void => {
+    const subscription = agentEventSubscriptions.get(subscriptionId)
+    if (!subscription) {
+      return
+    }
+    agentEventSubscriptions.delete(subscriptionId)
+    if (typeof subscription.sender.off === 'function') {
+      subscription.sender.off('destroyed', subscription.onDestroyed)
+    }
+    subscription.unsubscribe()
   }
 
   handle(desktopApiIpcChannels.appGetVersions, async () => {
@@ -828,6 +867,107 @@ export function registerIpc(
       await killShellSession(sessionId as string)
     },
   )
+
+  handle(desktopApiIpcChannels.agentStart, async (_event, request) => {
+    await services.agentRuntimeService.start(request as DesktopAgentProviderRequest)
+  })
+
+  handle(
+    desktopApiIpcChannels.agentStartSession,
+    async (_event, request) => {
+      return await services.agentRuntimeService.startSession(
+        request as DesktopAgentStartSessionRequest,
+      )
+    },
+  )
+
+  handle(
+    desktopApiIpcChannels.agentSendMessage,
+    async (_event, request) => {
+      return await services.agentRuntimeService.sendMessage(
+        request as DesktopAgentSendMessageRequest,
+      )
+    },
+  )
+
+  handle(desktopApiIpcChannels.agentInterrupt, async (_event, request) => {
+    await services.agentRuntimeService.interrupt(request as DesktopAgentProviderRequest)
+  })
+
+  handle(desktopApiIpcChannels.agentGetStatus, async (_event, request) => {
+    return await services.agentRuntimeService.getStatus(
+      request as DesktopAgentProviderRequest,
+    )
+  })
+
+  handle(
+    desktopApiIpcChannels.agentSetMode,
+    async (_event, request) => {
+      return await services.agentRuntimeService.setMode(
+        request as DesktopAgentSetModeRequest,
+      )
+    },
+  )
+
+  handle(
+    desktopApiIpcChannels.agentListSessions,
+    async (_event, request) => {
+      return await services.agentRuntimeService.listSessions(
+        request as DesktopAgentListSessionsRequest,
+      )
+    },
+  )
+
+  handle(
+    desktopApiIpcChannels.agentResumeSession,
+    async (_event, request) => {
+      return await services.agentRuntimeService.resumeSession(
+        request as DesktopAgentResumeSessionRequest,
+      )
+    },
+  )
+
+  handle(desktopApiIpcChannels.agentStop, async (_event, request) => {
+    await services.agentRuntimeService.stop(request as DesktopAgentProviderRequest)
+  })
+
+  handle(desktopApiIpcChannels.agentSubscribeEvents, async (event) => {
+    const sender = event.sender
+    const subscriptionId = randomUUID()
+    const isSenderDestroyed = (): boolean =>
+      typeof sender.isDestroyed === 'function' ? sender.isDestroyed() : false
+    const onDestroyed = (): void => {
+      unsubscribeAgentEvents(subscriptionId)
+    }
+    const unsubscribe = services.agentRuntimeService.onEvent((payload) => {
+      if (isSenderDestroyed()) return
+      if (typeof sender.send === 'function') {
+        sender.send(desktopApiEventChannels.agentEvent, {
+          event: payload,
+          subscriptionId,
+        })
+      }
+    })
+
+    agentEventSubscriptions.set(subscriptionId, {
+      onDestroyed,
+      sender,
+      unsubscribe,
+    })
+    if (typeof sender.once === 'function') {
+      sender.once('destroyed', onDestroyed)
+    }
+
+    if (isSenderDestroyed()) {
+      onDestroyed()
+    }
+
+    return subscriptionId
+  })
+
+  handle(desktopApiIpcChannels.agentUnsubscribeEvents, async (_event, subscriptionId) => {
+    unsubscribeAgentEvents(subscriptionId as string)
+  })
 
   handle(desktopApiIpcChannels.systemOpenExternal, async (_event, url) => {
     await shell.openExternal(url as string)

@@ -5,6 +5,7 @@ import {
 } from '../../../../packages/shared/src/constants/ipcChannels.ts'
 import type {
   DesktopApi,
+  DesktopAgentEvent,
   DesktopCliCommandEvent,
   DesktopCliCommandRequest,
   DesktopDirectoryDialogOptions,
@@ -306,6 +307,47 @@ const desktopApi: DesktopApi = {
           listener(payload as DesktopShellExitEvent)
         },
       ),
+  },
+  agent: {
+    start: (request) => invokeDesktop(desktopApiIpcChannels.agentStart, request),
+    startSession: (request) =>
+      invokeDesktop(desktopApiIpcChannels.agentStartSession, request),
+    sendMessage: (request) =>
+      invokeDesktop(desktopApiIpcChannels.agentSendMessage, request),
+    interrupt: (request) =>
+      invokeDesktop(desktopApiIpcChannels.agentInterrupt, request),
+    getStatus: (request) =>
+      invokeDesktop(desktopApiIpcChannels.agentGetStatus, request),
+    setMode: (request) =>
+      invokeDesktop(desktopApiIpcChannels.agentSetMode, request),
+    listSessions: (request) =>
+      invokeDesktop(desktopApiIpcChannels.agentListSessions, request),
+    resumeSession: (request) =>
+      invokeDesktop(desktopApiIpcChannels.agentResumeSession, request),
+    stop: (request) => invokeDesktop(desktopApiIpcChannels.agentStop, request),
+    onEvent: async (listener) => {
+      const subscriptionId = await ipcRenderer.invoke(
+        desktopApiIpcChannels.agentSubscribeEvents,
+      ) as string
+      const eventListener = (_event: IpcRendererEvent, payload: unknown) => {
+        if (
+          typeof payload !== 'object'
+          || payload === null
+          || !('subscriptionId' in payload)
+          || payload.subscriptionId !== subscriptionId
+          || !('event' in payload)
+        ) {
+          return
+        }
+        listener(payload.event as DesktopAgentEvent)
+      }
+      ipcRenderer.on(desktopApiEventChannels.agentEvent, eventListener)
+
+      return () => {
+        ipcRenderer.removeListener(desktopApiEventChannels.agentEvent, eventListener)
+        void invokeDesktop(desktopApiIpcChannels.agentUnsubscribeEvents, subscriptionId)
+      }
+    },
   },
 }
 

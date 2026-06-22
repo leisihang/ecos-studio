@@ -6,6 +6,7 @@
   "packageManager": "pnpm@11.0.9",
   "scripts": {
     "dev": "pnpm run desktop:dev",
+    "dev:agent": "bash scripts/dev-agent-gui.sh",
     "dev:vm": "LIBGL_ALWAYS_SOFTWARE=1 ELECTRON_DISABLE_SANDBOX=1 ECOS_ELECTRON_DISABLE_GPU=1 ECOS_ELECTRON_OPEN_DEVTOOLS=1 pnpm run desktop:dev",
     "build": "pnpm --filter @ecos-studio/renderer run typecheck && pnpm run desktop:build",
     "preview": "pnpm run desktop:preview",

@@ -99,6 +99,141 @@ export interface DesktopProjectLogTailSubscriptionOptions {
   pollIntervalMs?: number
 }
 
+export type DesktopAgentProviderId = string
+
+export type DesktopAgentMode = 'general_assistant' | 'flow_guarded_design'
+
+export interface DesktopAgentStepState {
+  id: string
+  reason: string | null
+  status: string
+  updatedAt: number
+}
+
+export interface DesktopAgentFlowGuardStatus {
+  activeStep: string | null
+  projectRoot: string | null
+  steps: Record<string, DesktopAgentStepState>
+}
+
+export interface DesktopAgentStatus {
+  activeTurnId: string | null
+  flowGuard: DesktopAgentFlowGuardStatus | null
+  mode: DesktopAgentMode
+  provider: DesktopAgentProviderId
+  threadId: string | null
+}
+
+export interface DesktopAgentSessionSummary {
+  id: string
+  provider: DesktopAgentProviderId
+  cwd: string
+  preview: string
+  createdAt: number
+  updatedAt: number
+  name: string | null
+}
+
+export interface DesktopAgentChatMessage {
+  content: string
+  role: 'assistant' | 'user'
+}
+
+export interface DesktopAgentProviderRequest {
+  provider?: DesktopAgentProviderId | null
+}
+
+export type DesktopAgentStartRequest = DesktopAgentProviderRequest
+
+export interface DesktopAgentStartSessionRequest extends DesktopAgentProviderRequest {
+  cwd: string
+}
+
+export interface DesktopAgentStartSessionResponse {
+  provider: DesktopAgentProviderId
+  sessionId: string
+}
+
+export interface DesktopAgentSendMessageRequest extends DesktopAgentProviderRequest {
+  cwd?: string | null
+  mode?: DesktopAgentMode | null
+  prompt: string
+}
+
+export interface DesktopAgentSendMessageResponse {
+  messageId: string
+  provider: DesktopAgentProviderId
+}
+
+export interface DesktopAgentSetModeRequest extends DesktopAgentProviderRequest {
+  cwd?: string | null
+  mode: DesktopAgentMode
+}
+
+export interface DesktopAgentListSessionsRequest extends DesktopAgentProviderRequest {
+  cwd?: string | null
+  limit?: number | null
+}
+
+export interface DesktopAgentListSessionsResponse {
+  sessions: DesktopAgentSessionSummary[]
+}
+
+export interface DesktopAgentResumeSessionRequest extends DesktopAgentProviderRequest {
+  cwd?: string | null
+  sessionId: string
+}
+
+export interface DesktopAgentResumeSessionResponse {
+  messages: DesktopAgentChatMessage[]
+  provider: DesktopAgentProviderId
+  sessionId: string
+}
+
+export interface DesktopAgentActionEvent {
+  content: string
+  id: string | null
+  kind: 'command' | 'fileChange' | string
+  status: 'running' | 'done' | 'error' | string
+}
+
+export type DesktopAgentEvent =
+  | {
+      action: DesktopAgentActionEvent
+      provider: DesktopAgentProviderId
+      type: 'action'
+    }
+  | {
+      delta: string
+      provider: DesktopAgentProviderId
+      type: 'messageDelta'
+    }
+  | {
+      provider: DesktopAgentProviderId
+      type: 'messageCompleted'
+    }
+  | {
+      provider: DesktopAgentProviderId
+      status: DesktopAgentStatus
+      type: 'status'
+    }
+  | {
+      decision: unknown
+      provider: DesktopAgentProviderId
+      type: 'flowGuardDecision'
+    }
+  | {
+      message: string
+      provider: DesktopAgentProviderId
+      type: 'error' | 'stderr'
+    }
+  | {
+      code: number | null
+      provider: DesktopAgentProviderId
+      signal: string | null
+      type: 'exit'
+    }
+
 export interface DesktopApi {
   app: {
     getVersions(): Promise<VersionInfo>
@@ -196,5 +331,17 @@ export interface DesktopApi {
     kill(sessionId: string): Promise<void>
     onData(listener: (event: DesktopShellDataEvent) => void): DesktopEventUnsubscribe
     onExit(listener: (event: DesktopShellExitEvent) => void): DesktopEventUnsubscribe
+  }
+  agent: {
+    start(request?: DesktopAgentStartRequest): Promise<void>
+    startSession(request: DesktopAgentStartSessionRequest): Promise<DesktopAgentStartSessionResponse>
+    sendMessage(request: DesktopAgentSendMessageRequest): Promise<DesktopAgentSendMessageResponse>
+    interrupt(request?: DesktopAgentProviderRequest): Promise<void>
+    getStatus(request?: DesktopAgentProviderRequest): Promise<DesktopAgentStatus>
+    setMode(request: DesktopAgentSetModeRequest): Promise<DesktopAgentStatus>
+    listSessions(request: DesktopAgentListSessionsRequest): Promise<DesktopAgentListSessionsResponse>
+    resumeSession(request: DesktopAgentResumeSessionRequest): Promise<DesktopAgentResumeSessionResponse>
+    stop(request?: DesktopAgentProviderRequest): Promise<void>
+    onEvent(listener: (event: DesktopAgentEvent) => void): Promise<DesktopEventUnsubscribe>
   }
 }

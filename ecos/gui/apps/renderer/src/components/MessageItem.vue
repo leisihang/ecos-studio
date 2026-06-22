@@ -498,6 +498,14 @@ function csvRows(content: string): string[][] {
 .markdown-body {
   line-height: 1.6;
   word-break: break-word;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.message-bubble,
+.message-bubble :deep(*) {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .markdown-body :deep(p) {

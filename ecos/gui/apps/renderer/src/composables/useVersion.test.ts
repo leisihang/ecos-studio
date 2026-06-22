@@ -149,6 +149,34 @@ function createDesktopBridge(getVersions: DesktopApi['app']['getVersions']) {
       onData: () => () => undefined,
       onExit: () => () => undefined,
     },
+    agent: {
+      start: async () => undefined,
+      startSession: async () => ({ provider: 'codex_app_server', sessionId: 'test-thread' }),
+      sendMessage: async () => ({ provider: 'codex_app_server', messageId: 'test-turn' }),
+      interrupt: async () => undefined,
+      getStatus: async () => ({
+        activeTurnId: null,
+        flowGuard: null,
+        mode: 'general_assistant',
+        provider: 'codex_app_server',
+        threadId: null,
+      }),
+      setMode: async (request) => ({
+        activeTurnId: null,
+        flowGuard: null,
+        mode: request.mode,
+        provider: request.provider ?? 'codex_app_server',
+        threadId: null,
+      }),
+      listSessions: async () => ({ sessions: [] }),
+      resumeSession: async (request) => ({
+        messages: [],
+        provider: request.provider ?? 'codex_app_server',
+        sessionId: request.sessionId,
+      }),
+      stop: async () => undefined,
+      onEvent: async () => () => undefined,
+    },
   } satisfies DesktopApi
 }
 

@@ -41,6 +41,19 @@ pnpm install
 pnpm run dev
 ```
 
+```bash
+# Electron shell + renderer + external Agent bridge
+pnpm run dev:agent
+```
+
+`dev:agent` keeps the Agent runtime outside the ECOS Studio source tree. It resolves the bridge in this order:
+
+1. `AGENT_BRIDGE_ROOT`
+2. `external/agent-bridge` under the repository root
+3. a sibling `agent-bridge` or `codex-agent-bridge` checkout next to `ecos-studio`
+
+For fork-based development, prefer keeping the bridge as an external checkout or optional submodule at `external/agent-bridge`; ECOS Studio should only contain the thin `agent:*` GUI/IPC layer.
+
 The renderer dev server prefers port `1420`. If another ECOS Studio dev
 instance is already using it, Vite automatically picks the next free port and
 electron-vite passes that URL to the Electron shell.

@@ -5,6 +5,7 @@ import { createMainWindow } from './createMainWindow'
 import { configureGpuMode } from './gpuMode'
 import { registerIpc } from './registerIpc'
 import { AppInfoService } from '../services/appInfoService'
+import { AgentRuntimeService } from '../services/agentRuntimeService'
 import { DesktopRuntimeManager } from '../services/desktopRuntimeManager'
 import {
   getElectronLatestMainLogFile,
@@ -28,6 +29,7 @@ let ipcRegistered = false
 let services:
   | {
       appInfoService: AppInfoService
+      agentRuntimeService: AgentRuntimeService
       desktopRuntimeManager: DesktopRuntimeManager
       remoteContentService: RemoteContentService
       settingsStore: SettingsStore
@@ -90,6 +92,7 @@ function getDesktopServices() {
     appVersionProvider: () => app.getVersion(),
     env: runtimeEnv,
   })
+  const agentRuntimeService = new AgentRuntimeService()
   const remoteContentService = new RemoteContentService()
   const workspaceResourceService = new WorkspaceResourceService({
     projectScopeProvider: projectScopeService,
@@ -120,6 +123,7 @@ function getDesktopServices() {
 
   services = {
     appInfoService,
+    agentRuntimeService,
     desktopRuntimeManager,
     remoteContentService,
     resourceManagerService,
@@ -139,6 +143,7 @@ async function launchMainWindow(): Promise<void> {
   if (!ipcRegistered) {
     registerIpc(undefined, {
       appInfoService: desktopServices.appInfoService,
+      agentRuntimeService: desktopServices.agentRuntimeService,
       desktopRuntimeManager: desktopServices.desktopRuntimeManager,
       remoteContentService: desktopServices.remoteContentService,
       resourceManagerService: desktopServices.resourceManagerService,

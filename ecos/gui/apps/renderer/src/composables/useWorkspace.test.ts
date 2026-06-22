@@ -142,6 +142,41 @@ function createDesktopApiMock(overrides: Partial<DesktopApi> = {}): DesktopApi {
     },
     tiles: {
       generate: vi.fn(),
+      getStatus: vi.fn(),
+    },
+    agent: {
+      start: vi.fn(),
+      startSession: vi.fn(async () => ({
+        provider: 'codex_app_server',
+        sessionId: 'test-thread',
+      })),
+      sendMessage: vi.fn(async () => ({
+        provider: 'codex_app_server',
+        messageId: 'test-turn',
+      })),
+      interrupt: vi.fn(),
+      getStatus: vi.fn(async () => ({
+        activeTurnId: null,
+        flowGuard: null,
+        mode: 'general_assistant',
+        provider: 'codex_app_server',
+        threadId: null,
+      })),
+      setMode: vi.fn(async request => ({
+        activeTurnId: null,
+        flowGuard: null,
+        mode: request.mode,
+        provider: 'codex_app_server',
+        threadId: null,
+      })),
+      listSessions: vi.fn(async () => ({ sessions: [] })),
+      resumeSession: vi.fn(async () => ({
+        provider: 'codex_app_server',
+        sessionId: 'test-thread',
+        messages: [],
+      })),
+      stop: vi.fn(),
+      onEvent: vi.fn(async () => () => undefined),
     },
     ...overrides,
   } as DesktopApi
