@@ -17,10 +17,10 @@ Use these two branches together:
 
 ```text
 ECOS Studio GUI fork:
-https://github.com/leisihang/ecos-studio/tree/checkpoint/codex-gui-working
+https://github.com/<your-github-owner>/ecos-studio/tree/checkpoint/codex-gui-working
 
 External Agent bridge:
-https://github.com/leisihang/codex-agent-bridge/tree/checkpoint/codex-agent-bridge-working
+https://github.com/<your-github-owner>/codex-agent-bridge/tree/checkpoint/codex-agent-bridge-working
 ```
 
 Recommended checkout layout:
@@ -95,8 +95,8 @@ SSH:
 ```bash
 mkdir -p ~/ecos-agent-demo
 cd ~/ecos-agent-demo
-git clone -b checkpoint/codex-gui-working git@github.com:leisihang/ecos-studio.git
-git clone -b checkpoint/codex-agent-bridge-working git@github.com:leisihang/codex-agent-bridge.git
+git clone -b checkpoint/codex-gui-working git@github.com:<your-github-owner>/ecos-studio.git
+git clone -b checkpoint/codex-agent-bridge-working git@github.com:<your-github-owner>/codex-agent-bridge.git
 ```
 
 HTTPS:
@@ -104,8 +104,8 @@ HTTPS:
 ```bash
 mkdir -p ~/ecos-agent-demo
 cd ~/ecos-agent-demo
-git clone -b checkpoint/codex-gui-working https://github.com/leisihang/ecos-studio.git
-git clone -b checkpoint/codex-agent-bridge-working https://github.com/leisihang/codex-agent-bridge.git
+git clone -b checkpoint/codex-gui-working https://github.com/<your-github-owner>/ecos-studio.git
+git clone -b checkpoint/codex-agent-bridge-working https://github.com/<your-github-owner>/codex-agent-bridge.git
 ```
 
 ## Install GUI Dependencies
@@ -149,10 +149,16 @@ AGENT_BRIDGE_ROOT=~/ecos-agent-demo/codex-agent-bridge corepack pnpm run dev:age
 4. `ecos-studio/external/codex-agent-bridge`
 5. a sibling `agent-bridge` or `codex-agent-bridge` checkout
 
-For this local WSL workspace, the one-line startup command is:
+Generic one-line startup command:
 
 ```bash
-cd /mnt/c/Users/26086/Desktop/least_ecos/ecos-studio/ecos/gui && AGENT_BRIDGE_ROOT=/mnt/c/Users/26086/Desktop/least_ecos/codex-agent-bridge COREPACK_HOME=/tmp/corepack PNPM_HOME=/tmp/pnpm-home PNPM_STORE_PATH=/tmp/pnpm-store XDG_DATA_HOME=/tmp/xdg-data XDG_STATE_HOME=/tmp/xdg-state corepack pnpm run dev:agent
+cd <workspace>/ecos-studio/ecos/gui && AGENT_BRIDGE_ROOT=<workspace>/codex-agent-bridge COREPACK_HOME=/tmp/corepack PNPM_HOME=/tmp/pnpm-home PNPM_STORE_PATH=/tmp/pnpm-store XDG_DATA_HOME=/tmp/xdg-data XDG_STATE_HOME=/tmp/xdg-state corepack pnpm run dev:agent
+```
+
+If you are using a demo-only `ecc` shim, add it explicitly:
+
+```bash
+cd <workspace>/ecos-studio/ecos/gui && AGENT_BRIDGE_ROOT=<workspace>/codex-agent-bridge ECOS_AGENT_DEMO_TOOLS_BIN=<workspace>/demo-tools/bin COREPACK_HOME=/tmp/corepack PNPM_HOME=/tmp/pnpm-home PNPM_STORE_PATH=/tmp/pnpm-store XDG_DATA_HOME=/tmp/xdg-data XDG_STATE_HOME=/tmp/xdg-state corepack pnpm run dev:agent
 ```
 
 ## Use The Agent Panel
@@ -214,18 +220,17 @@ when `ecc` is not directly on `PATH`. That wrapper runs `uv run ecc` inside the
 Use this path only when the goal is to test the Codex GUI quickly without
 installing the real ECC/toolchain stack.
 
-This repository branch does not require demo shim code inside ECOS Studio. The
-local development script prepends this optional external directory when it
-exists:
+This repository branch does not require demo shim code inside ECOS Studio. If
+you use a demo shim, pass it explicitly through `ECOS_AGENT_DEMO_TOOLS_BIN`:
 
 ```text
-<workspace>/codex_gui_demo_tools/bin
+ECOS_AGENT_DEMO_TOOLS_BIN=<workspace>/demo-tools/bin
 ```
 
-In the local workspace used during development, that directory contains:
+For example:
 
 ```text
-/mnt/c/Users/26086/Desktop/least_ecos/codex_gui_demo_tools/bin/ecc
+<workspace>/demo-tools/bin/ecc
 ```
 
 The shim responds to basic commands such as:
@@ -239,18 +244,18 @@ ecc workspace get-info --directory /path/to/project --step Synthesis_yosys --id 
 It is useful for opening the demo project and validating Codex chat. It does not
 run real synthesis, floorplan, placement, routing, or DRC.
 
-## Current Local Demo Project
+## Example Demo Project
 
-The local demo project path used during development is:
+Example Windows path:
 
 ```text
-C:\Users\26086\Desktop\least_ecos\codex_gui_demo_project_ecos
+C:\path\to\demo-project
 ```
 
-In WSL, the same path is:
+Example WSL path:
 
 ```text
-/mnt/c/Users/26086/Desktop/least_ecos/codex_gui_demo_project_ecos
+/mnt/c/path/to/demo-project
 ```
 
 This project is suitable for Agent GUI validation:
@@ -412,8 +417,8 @@ uv sync --no-build-isolation-package ecc-dreamplace --no-build-isolation-package
 uv run ecc --version
 ```
 
-For a Codex GUI smoke test only, put a demo `ecc` shim on `PATH` or use the
-local `codex_gui_demo_tools/bin/ecc` shim.
+For a Codex GUI smoke test only, put a demo `ecc` shim on `PATH`, for example
+`<workspace>/demo-tools/bin/ecc`.
 
 ### `ecc` submodule is empty
 

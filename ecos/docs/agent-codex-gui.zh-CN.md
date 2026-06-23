@@ -17,10 +17,10 @@
 
 ```text
 ECOS Studio GUI fork:
-https://github.com/leisihang/ecos-studio/tree/checkpoint/codex-gui-working
+https://github.com/<your-github-owner>/ecos-studio/tree/checkpoint/codex-gui-working
 
 外部 Agent bridge:
-https://github.com/leisihang/codex-agent-bridge/tree/checkpoint/codex-agent-bridge-working
+https://github.com/<your-github-owner>/codex-agent-bridge/tree/checkpoint/codex-agent-bridge-working
 ```
 
 推荐目录结构：
@@ -94,8 +94,8 @@ SSH：
 ```bash
 mkdir -p ~/ecos-agent-demo
 cd ~/ecos-agent-demo
-git clone -b checkpoint/codex-gui-working git@github.com:leisihang/ecos-studio.git
-git clone -b checkpoint/codex-agent-bridge-working git@github.com:leisihang/codex-agent-bridge.git
+git clone -b checkpoint/codex-gui-working git@github.com:<your-github-owner>/ecos-studio.git
+git clone -b checkpoint/codex-agent-bridge-working git@github.com:<your-github-owner>/codex-agent-bridge.git
 ```
 
 HTTPS：
@@ -103,8 +103,8 @@ HTTPS：
 ```bash
 mkdir -p ~/ecos-agent-demo
 cd ~/ecos-agent-demo
-git clone -b checkpoint/codex-gui-working https://github.com/leisihang/ecos-studio.git
-git clone -b checkpoint/codex-agent-bridge-working https://github.com/leisihang/codex-agent-bridge.git
+git clone -b checkpoint/codex-gui-working https://github.com/<your-github-owner>/ecos-studio.git
+git clone -b checkpoint/codex-agent-bridge-working https://github.com/<your-github-owner>/codex-agent-bridge.git
 ```
 
 ## 安装 GUI 依赖
@@ -147,10 +147,16 @@ AGENT_BRIDGE_ROOT=~/ecos-agent-demo/codex-agent-bridge corepack pnpm run dev:age
 4. `ecos-studio/external/codex-agent-bridge`
 5. 和 `ecos-studio` 平级的 `agent-bridge` 或 `codex-agent-bridge`
 
-当前本机 WSL 工作区的一行启动命令是：
+通用一行启动命令：
 
 ```bash
-cd /mnt/c/Users/26086/Desktop/least_ecos/ecos-studio/ecos/gui && AGENT_BRIDGE_ROOT=/mnt/c/Users/26086/Desktop/least_ecos/codex-agent-bridge COREPACK_HOME=/tmp/corepack PNPM_HOME=/tmp/pnpm-home PNPM_STORE_PATH=/tmp/pnpm-store XDG_DATA_HOME=/tmp/xdg-data XDG_STATE_HOME=/tmp/xdg-state corepack pnpm run dev:agent
+cd <workspace>/ecos-studio/ecos/gui && AGENT_BRIDGE_ROOT=<workspace>/codex-agent-bridge COREPACK_HOME=/tmp/corepack PNPM_HOME=/tmp/pnpm-home PNPM_STORE_PATH=/tmp/pnpm-store XDG_DATA_HOME=/tmp/xdg-data XDG_STATE_HOME=/tmp/xdg-state corepack pnpm run dev:agent
+```
+
+如果使用 demo `ecc` shim，需要显式加上：
+
+```bash
+cd <workspace>/ecos-studio/ecos/gui && AGENT_BRIDGE_ROOT=<workspace>/codex-agent-bridge ECOS_AGENT_DEMO_TOOLS_BIN=<workspace>/demo-tools/bin COREPACK_HOME=/tmp/corepack PNPM_HOME=/tmp/pnpm-home PNPM_STORE_PATH=/tmp/pnpm-store XDG_DATA_HOME=/tmp/xdg-data XDG_STATE_HOME=/tmp/xdg-state corepack pnpm run dev:agent
 ```
 
 ## 使用 Agent 面板
@@ -212,17 +218,17 @@ uv run ecc --version
 如果目标只是快速看 Codex GUI、打开 demo project、验证能和 Codex 对话，可以
 临时使用 demo `ecc` shim。
 
-这个 shim 不放在 ECOS Studio 源码中。当前本机开发脚本会在存在时自动把下面
-目录放到 `PATH` 前面：
+这个 shim 不放在 ECOS Studio 源码中。如果需要使用 demo shim，请通过
+`ECOS_AGENT_DEMO_TOOLS_BIN` 显式传入：
 
 ```text
-<workspace>/codex_gui_demo_tools/bin
+ECOS_AGENT_DEMO_TOOLS_BIN=<workspace>/demo-tools/bin
 ```
 
-当前本机路径是：
+例如：
 
 ```text
-/mnt/c/Users/26086/Desktop/least_ecos/codex_gui_demo_tools/bin/ecc
+<workspace>/demo-tools/bin/ecc
 ```
 
 它支持基本命令，例如：
@@ -236,18 +242,18 @@ ecc workspace get-info --directory /path/to/project --step Synthesis_yosys --id 
 它只能用于打开 demo project 和验证 Codex 聊天，不会运行真实 synthesis、
 floorplan、placement、routing 或 DRC。
 
-## 当前本地 demo project
+## 示例 demo project
 
-Windows 路径：
+示例 Windows 路径：
 
 ```text
-C:\Users\26086\Desktop\least_ecos\codex_gui_demo_project_ecos
+C:\path\to\demo-project
 ```
 
-WSL 路径：
+示例 WSL 路径：
 
 ```text
-/mnt/c/Users/26086/Desktop/least_ecos/codex_gui_demo_project_ecos
+/mnt/c/path/to/demo-project
 ```
 
 这个项目适合做 Agent GUI 验证：
@@ -403,10 +409,10 @@ uv sync --no-build-isolation-package ecc-dreamplace --no-build-isolation-package
 uv run ecc --version
 ```
 
-如果只是 Codex GUI smoke test，可以使用 demo `ecc` shim，例如当前本机的：
+如果只是 Codex GUI smoke test，可以使用 demo `ecc` shim，例如：
 
 ```text
-/mnt/c/Users/26086/Desktop/least_ecos/codex_gui_demo_tools/bin/ecc
+<workspace>/demo-tools/bin/ecc
 ```
 
 ### `ecc` 子模块是空的

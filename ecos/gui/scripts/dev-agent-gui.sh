@@ -53,8 +53,8 @@ export PNPM_STORE_PATH="${PNPM_STORE_PATH:-/tmp/pnpm-store}"
 export XDG_DATA_HOME="${XDG_DATA_HOME:-/tmp/xdg-data}"
 export XDG_STATE_HOME="${XDG_STATE_HOME:-/tmp/xdg-state}"
 
-if [[ -d "$WORKSPACE_ROOT/codex_gui_demo_tools/bin" ]]; then
-  export PATH="$WORKSPACE_ROOT/codex_gui_demo_tools/bin:$PATH"
+if [[ -n "${ECOS_AGENT_DEMO_TOOLS_BIN:-}" ]]; then
+  export PATH="$ECOS_AGENT_DEMO_TOOLS_BIN:$PATH"
 fi
 
 echo "[agent-gui] AGENT_BRIDGE_ROOT=$AGENT_BRIDGE_ROOT"
