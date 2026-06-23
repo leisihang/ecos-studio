@@ -106,6 +106,7 @@ pnpm --filter @ecos-studio/renderer exec vitest run src/utils/sanitizeHtml.test.
 - [ECOS package README](../README.md) — overall quick start and release notes for ECOS Studio
 - [ECOS Studio user guide](../docs/user-guide.md) — product usage  
 - [Codex Agent GUI Usage](../docs/agent-codex-gui.md) — Codex bridge setup and Agent panel startup
+- [Codex Agent GUI 使用文档](../docs/agent-codex-gui.zh-CN.md) — 中文启动、排错和边界说明
 - [Repository root README](../../README.md) — monorepo overview  
 - [ECC development](../../ecc/docs/development.md), [ECC architecture](../../ecc/docs/architecture.md) — ECC toolchain docs  
 

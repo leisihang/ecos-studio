@@ -3,6 +3,8 @@
 This document explains how to run the ECOS Studio fork with the external Agent
 bridge and the Codex app-server provider.
 
+Chinese version: [Codex Agent GUI 使用文档](agent-codex-gui.zh-CN.md).
+
 The integration is intentionally split into two repositories:
 
 - ECOS Studio keeps only the thin GUI, IPC, preload, and shared type layer.
