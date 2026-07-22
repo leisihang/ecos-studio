@@ -59,6 +59,30 @@ ECOS GUI -> desktop runtime -> ecc workspace commands -> EDA tools/PDK
 所以，Codex 能对话不代表真实 ECC flow 已经安装；安装真实 ECC CLI 也不会破坏
 Codex 对话链路，它只是让 ECOS 可以真实打开/运行项目。
 
+## 当前实现状态
+
+这个分支的主线是 ECOS Studio GUI 集成：
+
+- ECOS Studio 提供 AI / Agent 面板、通用 `agent:*` IPC handlers、preload API、
+  共享 Agent contract，以及 `dev:agent` 启动脚本。
+- `codex-agent-bridge` 保持在 ECOS Studio 源码树之外，负责 Codex app-server
+  进程管理、provider 适配、session/turn 管理、事件归一化和 guard 策略逻辑。
+- ECOS workspace 打开和 flow 执行仍然使用 ECC CLI。Agent bridge 不替代 `ecc`。
+- bridge 可以通过 runtime 和 FlowGuard 验证脚本在 headless 环境中验证；Electron
+  Agent 面板最终仍需要真实图形环境做可视化验证。
+- `codex-agent-bridge` 中目前有一个 DSE/FSM 原型，已验证的是 bridge 直接调用
+  OpenROAD Docker。它还没有迁移成通过 ECC CLI 作为 DSE 后端。
+
+后续目标链路是：
+
+```text
+ECOS Agent GUI
+  -> codex-agent-bridge
+  -> ECC CLI adapter
+  -> ecc workspace run-step / run-flow
+  -> ECC 选择的 EDA 后端
+```
+
 ## 环境要求
 
 Codex 对话需要：

@@ -60,6 +60,34 @@ ECOS GUI -> desktop runtime -> ecc workspace commands -> EDA tools/PDK
 If Codex chat works, installing a real ECC CLI should not break chat. It only
 enables real project loading and real flow execution instead of demo shims.
 
+## Current Implementation Status
+
+This branch is mainly an ECOS Studio GUI integration:
+
+- ECOS Studio provides the AI / Agent panel, generic `agent:*` IPC handlers,
+  preload API, shared Agent contracts, and the `dev:agent` startup helper.
+- `codex-agent-bridge` stays outside the ECOS Studio source tree and owns
+  Codex app-server process management, provider adaptation, session/turn
+  handling, event normalization, and guard policy logic.
+- ECOS workspace loading and flow execution still use ECC CLI. The Agent bridge
+  does not replace `ecc`.
+- The bridge can be validated headlessly with runtime and FlowGuard checks.
+  The Electron Agent panel still needs a real graphical environment for final
+  visual verification.
+- A DSE/FSM prototype currently exists in `codex-agent-bridge`. It has been
+  verified with OpenROAD Docker called directly by the bridge. It has not yet
+  been migrated to call ECC CLI as the DSE backend.
+
+The intended next backend step is:
+
+```text
+ECOS Agent GUI
+  -> codex-agent-bridge
+  -> ECC CLI adapter
+  -> ecc workspace run-step / run-flow
+  -> EDA backend selected by ECC
+```
+
 ## Requirements
 
 For Codex chat:
